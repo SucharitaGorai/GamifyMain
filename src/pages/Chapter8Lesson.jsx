@@ -347,6 +347,7 @@ export default function ForceLawsOfMotionNotes() {
   const [pageIndex, setPageIndex] = useState(0);
   const profile = JSON.parse(localStorage.getItem("gamify_profile") || "{}");
   const studentId = profile.id || "local_demo";
+  const [chapterLogged, setChapterLogged] = useState(false);
 
   useEffect(() => {
     const local = loadLocalProgress();
@@ -471,6 +472,20 @@ export default function ForceLawsOfMotionNotes() {
           }}>🎲 SNAKE & LADDER<br/>QUIZ CHALLENGE</h1>
           <SnakeLadderQuiz onComplete={() => setSnakeCompleted(true)} />
           <button onClick={() => {
+            // Log chapter completion once (so it shows under Remote progress)
+            if (!chapterLogged) {
+              try {
+                const local = loadLocalProgress();
+                const existing = local[studentId] || { name: profile.name || 'Demo', results: [], points: 0 };
+                const already = existing.results.some(r => r.topic === 'chapter8_completed');
+                if (!already) {
+                  existing.results.push({ topic: 'chapter8_completed', score: totalPoints, total: concepts.length, timestamp: new Date().toISOString() });
+                  saveLocalProgress(studentId, existing);
+                  enqueueSync({ student_id: studentId, topic: 'chapter8_completed', score: totalPoints, timestamp: new Date().toISOString(), total: concepts.length });
+                }
+              } catch {}
+              setChapterLogged(true);
+            }
             setPageIndex(pageIndex + 1);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }} className="gl-btn gl-btn--primary" style={{ marginTop: 30 }}>

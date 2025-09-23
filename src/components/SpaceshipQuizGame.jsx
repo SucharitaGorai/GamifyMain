@@ -237,10 +237,19 @@ const SpaceshipQuizGame = () => {
 
   // Handle keyboard input
   const handleKeyDown = useCallback((e) => {
+    // Block page scrolling when using game controls
+    const blockKeys = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Spacebar','w','a','s','d','W','A','S','D'];
+    if (blockKeys.includes(e.key)) {
+      try { e.preventDefault(); } catch {}
+    }
     setKeys(prev => ({ ...prev, [e.key]: true }));
   }, []);
 
   const handleKeyUp = useCallback((e) => {
+    const blockKeys = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Spacebar','w','a','s','d','W','A','S','D'];
+    if (blockKeys.includes(e.key)) {
+      try { e.preventDefault(); } catch {}
+    }
     setKeys(prev => ({ ...prev, [e.key]: false }));
   }, []);
 
@@ -448,12 +457,13 @@ const SpaceshipQuizGame = () => {
 
   // Effects
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    // Use non-passive listeners so preventDefault takes effect
+    document.addEventListener('keydown', handleKeyDown, { passive: false });
+    document.addEventListener('keyup', handleKeyUp, { passive: false });
     
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('keydown', handleKeyDown, { passive: false });
+      document.removeEventListener('keyup', handleKeyUp, { passive: false });
     };
   }, [handleKeyDown, handleKeyUp]);
 

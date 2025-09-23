@@ -728,6 +728,19 @@ html, body, #root { background: transparent !important; }
   box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset;
 }
 
+.student-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding-right: 50px; /* room for arrow */
+  cursor: pointer;
+}
+
+.student-select option {
+  color: #0f172a;
+}
+
 .student-input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }

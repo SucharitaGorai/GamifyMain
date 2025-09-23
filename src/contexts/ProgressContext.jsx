@@ -143,16 +143,36 @@ export function ProgressProvider({ children }) {
             const xp = calcXP(studentProgress);
             const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Player';
             const klass = studentProgress?.class || studentProgress?.grade || user.user_metadata?.class || null;
+            const school = user.user_metadata?.school || null;
             const lbPayload = {
               user_id: user.id,
               display_name: displayName,
               class: klass,
               xp,
               updated_at: new Date().toISOString(),
+              school,
             };
-            const { error: lbErr } = await supabase
-              .from('leaderboard')
-              .upsert(lbPayload, { onConflict: 'user_id' });
+            let lbErr = null;
+            try {
+              const resp = await supabase
+                .from('leaderboard')
+                .upsert(lbPayload, { onConflict: 'user_id' });
+              lbErr = resp.error || null;
+            } catch (e) {
+              lbErr = e;
+            }
+            // Graceful fallback if 'school' column is missing: retry without it
+            if (lbErr && /column .*school/i.test(String(lbErr.message))) {
+              const { school: _omit, ...fallbackPayload } = lbPayload;
+              try {
+                const resp2 = await supabase
+                  .from('leaderboard')
+                  .upsert(fallbackPayload, { onConflict: 'user_id' });
+                if (resp2.error) lbErr = resp2.error; else lbErr = null;
+              } catch (e2) {
+                lbErr = e2;
+              }
+            }
             if (lbErr) console.warn('Failed to upsert leaderboard XP:', lbErr.message);
           } catch (e) {
             console.warn('Leaderboard upsert error:', e.message);

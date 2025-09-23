@@ -53,9 +53,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signUp = async (email, password, fullName, role = 'student') => {
+  const signUp = async (email, password, fullName, role = 'student', school = '') => {
     if (!isSupabaseConfigured) {
-      const demo = { id: 'demo-user', email, user_metadata: { full_name: fullName, role } };
+      const demo = { id: 'demo-user', email, user_metadata: { full_name: fullName, role, school } };
       setUser(demo);
       localStorage.setItem('demo_user', JSON.stringify(demo));
       return { success: true, user: demo };
@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
         email,
         password,
         options: {
-          data: { full_name: fullName, role },
+          data: { full_name: fullName, role, school },
         },
       });
       if (error) return { success: false, error: error.message };

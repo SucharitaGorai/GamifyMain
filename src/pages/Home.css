@@ -532,10 +532,26 @@
   color: rgba(255,255,255,0.9);
   margin: 0 0 16px;
 }
+.school-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(124,58,237,0.18);
+  border: 1px solid rgba(167,139,250,0.35);
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: clamp(12px, 1.6vw, 14px);
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+  box-shadow: 0 6px 18px rgba(124,58,237,0.18);
+}
 .vip-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .start-btn.alt { 
   background: linear-gradient(135deg, rgba(109,40,217,0.12), rgba(167,139,250,0.10));
   border: 1px solid rgba(167, 139, 250, 0.28);
+  box-shadow: 0 6px 18px rgba(124,58,237,0.18);
   box-shadow: 0 6px 18px rgba(124, 58, 237, 0.18);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);

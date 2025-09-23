@@ -65,6 +65,7 @@ export default function Home() {
   const { user, isSupabaseConfigured } = useAuth();
   const { studentProgress, loading, getBadge, isNewUser, setMeta, updateProgress } = useProgress();
   const [topPlayers, setTopPlayers] = useState([]);
+  const [recentMaterials, setRecentMaterials] = useState([]);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -108,6 +109,50 @@ export default function Home() {
       try { localStorage.setItem('current_user_email', user.email); } catch {}
     }
   }, [user?.email]);
+
+  // Load recent uploaded materials for the user's school
+  useEffect(() => {
+    let cancelled = false;
+    const loadMaterials = async () => {
+      try {
+        const school = user?.user_metadata?.school || null;
+        if (!school) { if (!cancelled) setRecentMaterials([]); return; }
+        if (isSupabaseConfigured && supabase) {
+          let query = supabase
+            .from('materials')
+            .select('id, file_name, url, subject, description, teacher_name, school, created_at')
+            .eq('school', school)
+            .order('created_at', { ascending: false })
+            .limit(6);
+          const { data, error } = await query;
+          if (error) throw error;
+          if (!cancelled) setRecentMaterials(data || []);
+        } else {
+          // Local/demo fallback
+          const key = school ? `materials_${school}` : 'materials_demo';
+          try {
+            const arr = JSON.parse(localStorage.getItem(key) || '[]');
+            const data = Array.isArray(arr) ? arr.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,6) : [];
+            if (!cancelled) setRecentMaterials(data);
+          } catch {
+            if (!cancelled) setRecentMaterials([]);
+          }
+        }
+      } catch (e) {
+        console.warn('Recent materials load error:', e.message);
+        if (!cancelled) setRecentMaterials([]);
+      }
+    };
+    loadMaterials();
+    let channel;
+    if (isSupabaseConfigured && supabase) {
+      channel = supabase
+        .channel('home-materials')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => loadMaterials())
+        .subscribe();
+    }
+    return () => { cancelled = true; if (channel) supabase.removeChannel(channel); };
+  }, [isSupabaseConfigured, user?.user_metadata?.school]);
 
   // Helper to compute XP when falling back to local
   const calcXP = (progress) => {
@@ -531,6 +576,10 @@ export default function Home() {
             <span className="nav-ico"><Icon name="user" /></span>
             <span className="nav-label">Profile</span>
           </button>
+          <button className={`nav-item nav-materials ${location.pathname === '/materials' ? 'active' : ''}`} onClick={() => navigate('/materials')}>
+            <span className="nav-ico" aria-hidden>📎</span>
+            <span className="nav-label">Uploaded Files</span>
+          </button>
           <button className={`nav-item nav-notes ${location.pathname === '/notes' ? 'active' : ''}`} onClick={() => navigate('/notes')}>
             <span className="nav-ico"><Icon name="note" /></span>
             <span className="nav-label">Notes</span>
@@ -565,6 +614,11 @@ export default function Home() {
           <div className="vip-hero-left">
             <h2 className="vip-hero-title">{`Welcome${user ? `, ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Player'}` : ''}`}</h2>
             <p className="vip-hero-sub">Ready to continue your quest?</p>
+            {user?.user_metadata?.school && (
+              <div className="school-chip" title="Your school">
+                🏫 {String(user.user_metadata.school).toUpperCase()}
+              </div>
+            )}
             <div className="vip-hero-actions">
               <button className="start-btn" onClick={() => navigate(getResumePath())}>
                 ▶ Continue Learning

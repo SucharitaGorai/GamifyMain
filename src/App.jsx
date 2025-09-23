@@ -15,6 +15,8 @@ import Achievements from './pages/Achievements'
 import Leaderboard from './pages/Leaderboard'
 import TeacherDashboard from './pages/TeacherDashboard'
 import TeacherHome from './pages/TeacherHome'
+import TeacherProgress from './pages/TeacherProgress'
+import Materials from './pages/Materials'
 import Profile from './pages/Profile'
 import NotesPanel from './pages/NotesPanel'
 import Navbar from './components/Navbar'
@@ -24,6 +26,13 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import SubjectDetail from './pages/SubjectDetail'
 import GeminiChatbot from './components/GeminiChatBox'
+import TeacherQuizBuilder from './pages/TeacherQuizBuilder'
+import TeacherQuizEvaluation from './pages/TeacherQuizEvaluation'
+import StudentQuizzes from './pages/StudentQuizzes'
+import TakeQuiz from './pages/TakeQuiz'
+import StudentGames from './pages/StudentGames'
+import PlayGame from './pages/PlayGame'
+import TeacherGameBuilder from './pages/TeacherGameBuilder'
 
 
 
@@ -73,6 +82,15 @@ return (
 <Route path="/leaderboard" element={<Leaderboard />} />
 <Route path="/dashboard" element={<TeacherDashboard />} />
 <Route path="/teacher-home" element={<TeacherHome />} />
+<Route path="/teacher/progress" element={<TeacherProgress />} />
+<Route path="/teacher/quiz-builder" element={<TeacherQuizBuilder />} />
+<Route path="/teacher/quiz-evaluation" element={<TeacherQuizEvaluation />} />
+<Route path="/quizzes" element={<StudentQuizzes />} />
+<Route path="/take-quiz/:id" element={<TakeQuiz />} />
+<Route path="/games" element={<StudentGames />} />
+<Route path="/play/:id" element={<PlayGame />} />
+<Route path="/teacher/game-builder" element={<TeacherGameBuilder />} />
+<Route path="/materials" element={<Materials />} />
 <Route path="/profile" element={<Profile />} />
 <Route path="/notes" element={<NotesPanel />} />
 <Route path="/qna" element={<QnA />} />

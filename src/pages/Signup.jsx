@@ -11,7 +11,8 @@ const Signup = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: 'student',
+    school: ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +85,13 @@ const Signup = () => {
         delete newErrors.confirmPassword;
       }
     }
+    if (name === 'school') {
+      if (!value) {
+        newErrors.school = 'Please select your school';
+      } else {
+        delete newErrors.school;
+      }
+    }
     setErrors(newErrors);
   };
 
@@ -128,6 +136,10 @@ const Signup = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (!formData.school) {
+      newErrors.school = 'Please select your school';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -136,7 +148,7 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      const result = await signUp(formData.email, formData.password, formData.fullName, formData.role);
+      const result = await signUp(formData.email, formData.password, formData.fullName, formData.role, formData.school);
       
       if (result.success) {
         setShowSuccess(true);
@@ -385,6 +397,28 @@ const Signup = () => {
                   )}
                 </div>
                 {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
+              </div>
+
+              {/* School Selection */}
+              <div className="input-group">
+                <label className="student-label">School</label>
+                <div className="input-container">
+                  <select
+                    name="school"
+                    value={formData.school}
+                    onChange={handleChange}
+                    className={`student-input student-select ${errors.school ? 'error' : ''}`}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select your school
+                    </option>
+                    <option value="abc">abc</option>
+                    <option value="xyz">xyz</option>
+                  </select>
+                  <div className="input-icon">▼</div>
+                </div>
+                {errors.school && <div className="error-message">{errors.school}</div>}
               </div>
 
               {/* Role Selection */}

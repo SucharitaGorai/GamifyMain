@@ -7,7 +7,7 @@ const WRONG_ANSWER_PENALTY = 25;
 const PROJECTILE_SPEED = 18;
 const SCALE = 4;
 
-export default function Shooter() {
+export default function Shooter({ questions: externalQuestions = null, title: gameTitle = null }) {
 	const canvasRef = useRef(null);
 	const rafRef = useRef(0);
 	const projectileRef = useRef(null);
@@ -32,24 +32,30 @@ export default function Shooter() {
 
 	// Questions
 	const questions = useMemo(
-		() => shuffle([
-			{ question: "Which of the following best defines force?", options: ["A push or pull", "Energy stored in an object", "Rate of change of work", "A form of heat"], answer: "A push or pull" },
-			{ question: "Which of these is NOT an effect of force?", options: ["Changing the mass of an object", "Changing the shape of an object", "Changing the speed of an object", "Changing the direction of motion"], answer: "Changing the mass of an object" },
-			{ question: "Which is a contact force?", options: ["Frictional force", "Magnetic force", "Gravitational force", "Electrostatic force"], answer: "Frictional force" },
-			{ question: "Which is a non-contact force?", options: ["Muscular force", "Frictional force", "Normal reaction", "Magnetic force"], answer: "Magnetic force" },
-			{ question: "SI unit of force is:", options: ["Joule", "Newton", "Pascal", "Watt"], answer: "Newton" },
-			{ question: "A force can change the ______ of an object.", options: ["Color", "Mass", "State of motion", "Temperature only"], answer: "State of motion" },
-			{ question: "When two forces act in the same direction on an object, the net force is:", options: ["The difference of the two forces", "Zero", "The sum of the two forces", "Always equal to the larger force"], answer: "The sum of the two forces" },
-			{ question: "Balanced forces on a body:", options: ["Change the state of motion", "Change the shape only", "Produce acceleration", "Do not change the state of motion"], answer: "Do not change the state of motion" },
-			{ question: "Unbalanced forces acting on a body can:", options: ["Keep it at rest forever", "Only change shape", "Cause a change in speed or direction", "Only reduce its mass"], answer: "Cause a change in speed or direction" },
-			{ question: "Which instrument is commonly used to measure force?", options: ["Spring balance", "Thermometer", "Voltmeter", "Barometer"], answer: "Spring balance" },
-			{ question: "Gravitational force acts between:", options: ["Only between Earth and Moon", "Only between charged bodies", "Any two masses", "Only between magnets"], answer: "Any two masses" },
-			{ question: "Which force opposes the relative motion between surfaces in contact?", options: ["Electrostatic force", "Frictional force", "Magnetic force", "Gravitational force"], answer: "Frictional force" },
-			{ question: "Muscular force is an example of:", options: ["Non-contact force", "Contact force", "Field force", "Nuclear force"], answer: "Contact force" },
-			{ question: "The direction of force is important because force is a:", options: ["Scalar quantity", "Vector quantity", "Dimensionless quantity", "Unitless quantity"], answer: "Vector quantity" },
-			{ question: "Pushing a door to open it is an example of:", options: ["Gravitational force", "Magnetic force", "Applied force", "Electrostatic force"], answer: "Applied force" }
-		]),
-		[]
+		() => {
+			if (Array.isArray(externalQuestions) && externalQuestions.length > 0) {
+				// Use questions passed from parent as-is (already ordered)
+				return externalQuestions;
+			}
+			return shuffle([
+				{ question: "Which of the following best defines force?", options: ["A push or pull", "Energy stored in an object", "Rate of change of work", "A form of heat"], answer: "A push or pull" },
+				{ question: "Which of these is NOT an effect of force?", options: ["Changing the mass of an object", "Changing the shape of an object", "Changing the speed of an object", "Changing the direction of motion"], answer: "Changing the mass of an object" },
+				{ question: "Which is a contact force?", options: ["Frictional force", "Magnetic force", "Gravitational force", "Electrostatic force"], answer: "Frictional force" },
+				{ question: "Which is a non-contact force?", options: ["Muscular force", "Frictional force", "Normal reaction", "Magnetic force"], answer: "Magnetic force" },
+				{ question: "SI unit of force is:", options: ["Joule", "Newton", "Pascal", "Watt"], answer: "Newton" },
+				{ question: "A force can change the ______ of an object.", options: ["Color", "Mass", "State of motion", "Temperature only"], answer: "State of motion" },
+				{ question: "When two forces act in the same direction on an object, the net force is:", options: ["The difference of the two forces", "Zero", "The sum of the two forces", "Always equal to the larger force"], answer: "The sum of the two forces" },
+				{ question: "Balanced forces on a body:", options: ["Change the state of motion", "Change the shape only", "Produce acceleration", "Do not change the state of motion"], answer: "Do not change the state of motion" },
+				{ question: "Unbalanced forces acting on a body can:", options: ["Keep it at rest forever", "Only change shape", "Cause a change in speed or direction", "Only reduce its mass"], answer: "Cause a change in speed or direction" },
+				{ question: "Which instrument is commonly used to measure force?", options: ["Spring balance", "Thermometer", "Voltmeter", "Barometer"], answer: "Spring balance" },
+				{ question: "Gravitational force acts between:", options: ["Only between Earth and Moon", "Only between charged bodies", "Any two masses", "Only between magnets"], answer: "Any two masses" },
+				{ question: "Which force opposes the relative motion between surfaces in contact?", options: ["Electrostatic force", "Frictional force", "Magnetic force", "Gravitational force"], answer: "Frictional force" },
+				{ question: "Muscular force is an example of:", options: ["Non-contact force", "Contact force", "Field force", "Nuclear force"], answer: "Contact force" },
+				{ question: "The direction of force is important because force is a:", options: ["Scalar quantity", "Vector quantity", "Dimensionless quantity", "Unitless quantity"], answer: "Vector quantity" },
+				{ question: "Pushing a door to open it is an example of:", options: ["Gravitational force", "Magnetic force", "Applied force", "Electrostatic force"], answer: "Applied force" }
+			]);
+		},
+		[externalQuestions]
 	);
 
 	// Canvas + world
@@ -540,7 +546,7 @@ export default function Shooter() {
 	return (
 		<div style={{ width: "min(920px,96vw)", margin: "12px auto", color: "#e9ecff", fontFamily: "Segoe UI, Roboto, Arial, sans-serif" }}>
 			<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "linear-gradient(90deg,#212545,#171a33)", border: "1px solid #2a2f5a", borderRadius: 14, padding: "10px 14px" }}>
-				<div style={{ fontWeight: 800 }}>Pixel Shooter Quiz — NCERT Class 8 Science: Force</div>
+				<div style={{ fontWeight: 800 }}>{gameTitle || 'Pixel Shooter Quiz — NCERT Class 8 Science: Force'}</div>
 				<div style={{ fontSize: 12, background: "linear-gradient(135deg,#7c5cff,#9d7bff)", padding: "6px 10px", borderRadius: 999, color: "#fff" }}>React</div>
 			</div>
 

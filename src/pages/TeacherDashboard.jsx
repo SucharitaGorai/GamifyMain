@@ -1,34 +1,99 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../supabaseClient";
 import { loadLocalProgress } from "../stores/localProgress";
 import "./TeacherDashboard.css";
 
 export default function TeacherDashboard() {
+  const { user } = useAuth();
   const [remoteProgress, setRemoteProgress] = useState([]);
   const [local, setLocal] = useState({});
   const [lastSync, setLastSync] = useState("");
+  const school = user?.user_metadata?.school || (function(){
+    try { return JSON.parse(localStorage.getItem('demo_user')||'null')?.user_metadata?.school; } catch { return null; }
+  })() || null;
 
   useEffect(() => {
     setLocal(loadLocalProgress());
 
-    // Fetch remote progress if Supabase is configured
-    if (supabase) {
-      (async () => {
-        const { data, error } = await supabase
-          .from("progress")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(200);
+    // Fetch remote quiz attempts for this teacher's school (via quizzes table)
+    const loadRemote = async () => {
+      if (!supabase) return;
+      try {
+        // 1) Get quizzes for the teacher's school (or all if no school)
+        let quizQuery = supabase.from('quizzes').select('id, title, school').order('created_at', { ascending: false }).limit(1000);
+        const { data: quizzes, error: qErr } = await quizQuery;
+        if (qErr) throw qErr;
+        const filteredQuizzes = Array.isArray(quizzes)
+          ? (school ? quizzes.filter(q => String(q.school||'').trim().toLowerCase() === String(school||'').trim().toLowerCase()) : quizzes)
+          : [];
+        const quizMap = new Map(filteredQuizzes.map(q => [q.id, q]));
+        const quizIds = filteredQuizzes.map(q => q.id);
 
-        if (error) console.warn("Supabase fetch error", error);
-        else {
-          setRemoteProgress(data || []);
-          setLastSync(new Date().toLocaleString());
+        // 2) Fetch attempts only for those quizzes
+        let attempts = [];
+        if (quizIds.length) {
+          const { data: atts, error: aErr } = await supabase
+            .from('quiz_attempts')
+            .select('*')
+            .in('quiz_id', quizIds)
+            .order('created_at', { ascending: false })
+            .limit(500);
+          if (aErr) throw aErr;
+          attempts = atts || [];
         }
-      })();
+
+        // 3) Map quiz attempts for table rendering
+        const rowsFromAttempts = attempts.map(a => ({
+          student_id: a.student_name || a.user_id,
+          topic: quizMap.get(a.quiz_id)?.title || '(quiz)',
+          score: a.score,
+          created_at: a.created_at,
+        }));
+
+        // 4) Also load generic progress rows (e.g., chapter completions)
+        let rowsFromProgress = [];
+        try {
+          const { data: prog, error: pErr } = await supabase
+            .from('progress')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(500);
+          if (pErr) throw pErr;
+          rowsFromProgress = (prog || []).map(p => ({
+            student_id: p.student_id,
+            topic: p.topic || '(chapter)',
+            score: p.score ?? 0,
+            created_at: p.created_at,
+          }));
+        } catch (e) {
+          // table may not exist in some deployments; ignore gracefully
+        }
+
+        const rows = [...rowsFromAttempts, ...rowsFromProgress]
+          .sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 500);
+        setRemoteProgress(rows);
+        setLastSync(new Date().toLocaleString());
+      } catch (e) {
+        console.warn('Supabase fetch error', e?.message || e);
+      }
+    };
+
+    loadRemote();
+
+    // Realtime updates on quiz_attempts
+    let channel;
+    if (supabase) {
+      channel = supabase
+        .channel('dashboard-quiz-attempts')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'quiz_attempts' }, () => loadRemote())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'progress' }, () => loadRemote())
+        .subscribe();
     }
-  }, []);
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, [school]);
 
   const localEntries = Object.keys(local || {}).length;
   const remoteEntries = (remoteProgress || []).length;
@@ -72,11 +137,23 @@ export default function TeacherDashboard() {
         <div className="dash-title">
           <h1><span className="gradient-text">Teacher Dashboard</span></h1>
           <p className="dash-subtitle">Track student progress, jump into lessons, and manage your class — all in one place.</p>
+          {school && (
+            <div style={{ marginTop: 6 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '6px 10px', borderRadius: 999,
+                background: 'rgba(124,58,237,0.18)', border: '1px solid rgba(167,139,250,0.35)', color: '#fff'
+              }}>
+                🏫 School: {String(school).toUpperCase()}
+              </span>
+            </div>
+          )}
         </div>
         <div className="dash-actions">
           <Link to="/lesson/math" className="dash-btn primary">📐 Math</Link>
           <Link to="/lesson/science" className="dash-btn">🔬 Science</Link>
           <Link to="/profile" className="dash-btn ghost">👤 Profile</Link>
+          <Link to="/teacher/progress" className="dash-btn">📊 Student Progress</Link>
         </div>
       </header>
 

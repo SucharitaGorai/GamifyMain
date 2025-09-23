@@ -37,11 +37,27 @@ export default function Leaderboard() {
     const load = async () => {
       try {
         if (isSupabaseConfigured && supabase) {
-          const { data, error } = await supabase
-            .from('leaderboard')
-            .select('user_id, display_name, class, xp')
-            .order('xp', { ascending: false })
-            .limit(50);
+          // Try to read optional 'school' column if present; gracefully fallback if not
+          let data = null; let error = null;
+          try {
+            const resp = await supabase
+              .from('leaderboard')
+              .select('user_id, display_name, class, xp, school')
+              .order('xp', { ascending: false })
+              .limit(50);
+            data = resp.data; error = resp.error;
+            if (error && /column .*school/i.test(String(error.message))) {
+              // Fallback without school if column missing
+              const resp2 = await supabase
+                .from('leaderboard')
+                .select('user_id, display_name, class, xp')
+                .order('xp', { ascending: false })
+                .limit(50);
+              data = resp2.data; error = resp2.error;
+            }
+          } catch (e) {
+            error = e;
+          }
           if (error) throw error;
           if (!cancelled) {
             setAllPlayers(
@@ -50,6 +66,7 @@ export default function Leaderboard() {
                 name: r.display_name || 'Player',
                 xp: Number(r.xp) || 0,
                 klass: r.class ? String(r.class) : 'Unknown',
+                school: (r.school || null)
               }))
             );
           }
@@ -66,14 +83,15 @@ export default function Leaderboard() {
               const userInfo = readJSON(`user_${userKey}`, null);
               const name = userInfo?.displayName || userInfo?.name || userKey.split('@')[0];
               const klass = userInfo?.class || userInfo?.grade || p?.class || 'Unknown';
-              data.push({ name, xp, klass, key: userKey });
+              const school = userInfo?.school || userInfo?.user_metadata?.school || null;
+              data.push({ name, xp, klass, key: userKey, school });
             }
           }
           if (data.length === 0) {
             data.push(
-              { name: 'Alice Quantum', xp: 960, klass: '8', key: 'demo_alice@example.com' },
-              { name: 'Bob Vector', xp: 840, klass: '8', key: 'demo_bob@example.com' },
-              { name: 'Carol Matrix', xp: 780, klass: '7', key: 'demo_carol@example.com' }
+              { name: 'Alice Quantum', xp: 960, klass: '8', key: 'demo_alice@example.com', school: 'ABC' },
+              { name: 'Bob Vector', xp: 840, klass: '8', key: 'demo_bob@example.com', school: 'XYZ' },
+              { name: 'Carol Matrix', xp: 780, klass: '7', key: 'demo_carol@example.com', school: 'ABC' }
             );
           }
           if (!cancelled) setAllPlayers(data.sort((a, b) => b.xp - a.xp));
@@ -82,6 +100,7 @@ export default function Leaderboard() {
         console.warn('Leaderboard load error:', e.message);
       }
     };
+
     load();
 
     // realtime updates from Supabase
@@ -126,6 +145,7 @@ export default function Leaderboard() {
           <div className="lb-header">
             <span>#</span>
             <span>Player</span>
+            <span>School</span>
             <span>XP</span>
           </div>
           <div className="lb-rows">
@@ -141,6 +161,7 @@ export default function Leaderboard() {
                   {i === 2 && <img className="lb-badge" src="/badge/26.png" alt="3rd place badge" />}
                   {p.name} {p.klass && p.klass !== 'Unknown' ? <span className="lb-class">(Class {p.klass})</span> : null}
                 </span>
+                <span className="lb-school">{p.school ? String(p.school).toUpperCase() : '—'}</span>
                 <span className="lb-xp">{p.xp}</span>
               </div>
             ))}
