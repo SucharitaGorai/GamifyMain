@@ -76,6 +76,17 @@ export default function Navbar() {
               >
                 Quizzes
               </NavLink>
+              {!isTeacher && (
+                <a
+                  href="https://career-guide-app.netlify.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link"
+                  title="Open Career Guide in a new tab"
+                >
+                  Career Guide
+                </a>
+              )}
               <NavLink
                 to="/materials"
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
