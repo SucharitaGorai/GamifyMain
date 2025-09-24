@@ -127,7 +127,7 @@ export default function TeacherHome() {
             <h2 style={{ margin: 0 }}>👩‍🏫 Welcome, {name}</h2>
             <div style={{ opacity: 0.8 }}>Your teacher workspace</div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <Link to="/qna" className="btn" style={{ background:'linear-gradient(135deg,#7c3aed,#f472b6)', color:'#fff', border:'none' }}>💬 Community Q&A</Link>
             <Link to="/dashboard" className="btn" style={{ background:'linear-gradient(135deg,#f472b6,#7c3aed)', color:'#fff', border:'none' }}>📊 Teacher Dashboard</Link>
           </div>
@@ -135,7 +135,7 @@ export default function TeacherHome() {
       </motion.div>
 
       {/* Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(280px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
         <motion.div className="glass-card" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} style={{ padding: 16, background:'linear-gradient(180deg, rgba(124,58,237,0.12), rgba(244,114,182,0.10))', border:'1px solid rgba(124,58,237,0.24)', color:'#fff' }}>
           <h3 style={{ marginTop: 0 }}>Create Quiz</h3>
           <p style={{ opacity: 0.85 }}>Build engaging quizzes for your class and track performance.</p>
