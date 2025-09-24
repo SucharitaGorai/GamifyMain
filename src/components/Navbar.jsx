@@ -78,7 +78,7 @@ export default function Navbar() {
               </NavLink>
               {!isTeacher && (
                 <a
-                  href="https://career-guide-app.netlify.app"
+                  href="https://career-guide-app-p2yw.onrender.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="nav-link"
