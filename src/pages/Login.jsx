@@ -231,28 +231,24 @@ const Login = () => {
           </div>
           <div className="glow-effect"></div>
         </div>
-
         {/* Login Form */}
         <div className="student-form-container">
           <div className="form-card">
             <form className="student-form" onSubmit={handleSubmit}>
               <h1 className="student-title">
-                <span className="title-text">Student Login</span>
+                <span className="title-text">Student/Teacher Login</span>
                 <div className="title-glow"></div>
               </h1>
-
               {!isSupabaseConfigured && (
                 <div className="demo-notice">
                   <p>🔧 Demo Mode: Supabase not configured. Using simulation.</p>
                 </div>
               )}
-
               {authError && (
                 <div className="auth-error">
                   <p>❌ {authError}</p>
                 </div>
               )}
-
               <div className="input-group">
                 <label className="student-label">Email Address</label>
                 <div className="input-container">
@@ -272,7 +268,6 @@ const Login = () => {
                 </div>
                 {errors.email && <div className="error-message">{errors.email}</div>}
               </div>
-
               <div className="input-group">
                 <label className="student-label">Password</label>
                 <div className="input-container">
@@ -292,7 +287,6 @@ const Login = () => {
                 </div>
                 {errors.password && <div className="error-message">{errors.password}</div>}
               </div>
-
               <button 
                 type="submit" 
                 className={`student-button ${isLoading ? 'loading' : ''}`}
@@ -301,10 +295,7 @@ const Login = () => {
                 <span className="button-text">
                   {isLoading ? 'Signing In...' : 'Login'}
                 </span>
-                <div className="button-glow"></div>
-                <div className="button-shine"></div>
               </button>
-
               <div className="form-footer">
                 <Link to="/signup" className="student-link">
                   <span className="link-text">New here? Create Account</span>
